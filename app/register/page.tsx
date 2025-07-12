@@ -109,20 +109,6 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <input type="checkbox" id="terms" className="rounded" required />
-                <Label htmlFor="terms" className="text-sm">
-                  I agree to the{" "}
-                  <Link href="/terms" className="text-black hover:underline">
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link href="/privacy" className="text-black hover:underline">
-                    Privacy Policy
-                  </Link>
-                </Label>
-              </div>
-
               <Button type="submit" className="w-full bg-black hover:bg-gray-800">
                 Create Account
               </Button>

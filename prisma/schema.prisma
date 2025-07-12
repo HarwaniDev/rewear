@@ -1,0 +1,365 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+// Users: Core user accounts and profiles
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String?
+  firstName         String?
+  lastName          String?
+  displayName       String?
+  bio               String?
+  location          String?
+  avatarUrl         String?
+  phoneNumber       String?
+  
+  // Account status
+  isActive          Boolean   @default(true)
+  isVerified        Boolean   @default(false)
+  isSuspended       Boolean   @default(false)
+  role              UserRole  @default(USER)
+  
+  // Points system
+  pointsBalance     Int       @default(0)
+  totalPointsEarned Int       @default(0)
+  
+  // Metadata
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  lastLoginAt       DateTime?
+  
+  // Relations
+  listedItems       Item[]    @relation("ItemOwner")
+  swapsSent         Swap[]    @relation("SwapRequester")
+  swapsReceived     Swap[]    @relation("SwapReceiver")
+  pointTransactions PointTransaction[]
+  sentMessages      Message[] @relation("MessageSender")
+  receivedMessages  Message[] @relation("MessageReceiver")
+  reports           Report[]  @relation("ReportCreator")
+  reportedBy        Report[]  @relation("ReportedUser")
+  notifications     Notification[]
+  adminActions      AdminAction[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+// Items: Clothing items listed for exchange
+model Item {
+  id            String        @id @default(cuid())
+  title         String
+  description   String
+  brand         String?
+  color         String?
+  tags          String[]      // Array of strings for flexible tagging
+  
+  // Classification
+  categoryId    String
+  category      Category      @relation(fields: [categoryId], references: [id])
+  size          String
+  condition     ItemCondition
+  
+  // Availability
+  status        ItemStatus    @default(PENDING_APPROVAL)
+  isAvailable   Boolean       @default(true)
+  pointValue    Int?          // Null if not available for point redemption
+  
+  // Owner information
+  ownerId       String
+  owner         User          @relation("ItemOwner", fields: [ownerId], references: [id])
+  
+  // Metadata
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  approvedAt    DateTime?
+  approvedById  String?
+  
+  // Relations
+  images        ItemImage[]
+  swaps         Swap[]
+  reports       Report[]      @relation("ReportedItem")
+  
+  @@map("items")
+}
+
+enum ItemCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+}
+
+enum ItemStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  REMOVED
+  SWAPPED
+}
+
+// Categories: Hierarchical item classification
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  slug        String    @unique
+  parentId    String?
+  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  
+  // Display properties
+  iconUrl     String?
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  
+  // Metadata
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  items       Item[]
+  
+  @@map("categories")
+}
+
+// Swaps: Direct item exchanges between users
+model Swap {
+  id              String      @id @default(cuid())
+  
+  // Participants
+  requesterId     String
+  requester       User        @relation("SwapRequester", fields: [requesterId], references: [id])
+  receiverId      String
+  receiver        User        @relation("SwapReceiver", fields: [receiverId], references: [id])
+  
+  // Items being swapped
+  requestedItemId String
+  requestedItem   Item        @relation(fields: [requestedItemId], references: [id])
+  offeredItemId   String?     // Null for point-based redemptions
+  
+  // Swap details
+  status          SwapStatus  @default(PENDING)
+  message         String?     // Optional message from requester
+  pointsUsed      Int?        // For point-based redemptions
+  
+  // Workflow tracking
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  acceptedAt      DateTime?
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  
+  // Relations
+  messages        Message[]
+  
+  @@map("swaps")
+}
+
+enum SwapStatus {
+  PENDING         // Waiting for receiver response
+  ACCEPTED        // Receiver accepted the swap
+  IN_PROGRESS     // Items being exchanged
+  COMPLETED       // Swap successfully completed
+  CANCELLED       // Cancelled by either party
+  REJECTED        // Receiver declined the swap
+}
+
+// PointTransaction: Track all point-related activities
+model PointTransaction {
+  id            String              @id @default(cuid())
+  userId        String
+  user          User                @relation(fields: [userId], references: [id])
+  
+  // Transaction details
+  type          PointTransactionType
+  amount        Int                 // Positive for earning, negative for spending
+  balance       Int                 // User's balance after this transaction
+  description   String
+  
+  // Related entities
+  swapId        String?             // If related to a swap
+  itemId        String?             // If related to an item listing
+  
+  // Metadata
+  createdAt     DateTime            @default(now())
+  
+  @@map("point_transactions")
+}
+
+enum PointTransactionType {
+  EARNED_LISTING      // Points for listing an item
+  EARNED_SWAP         // Points for completing a swap
+  EARNED_PROFILE      // Points for profile completion
+  EARNED_REFERRAL     // Points for referring a user
+  SPENT_REDEMPTION    // Points spent on item redemption
+  ADMIN_ADJUSTMENT    // Manual admin adjustment
+}
+
+// Messages: Communication between users for swaps
+model Message {
+  id          String    @id @default(cuid())
+  swapId      String
+  swap        Swap      @relation(fields: [swapId], references: [id])
+  
+  // Message details
+  senderId    String
+  sender      User      @relation("MessageSender", fields: [senderId], references: [id])
+  receiverId  String
+  receiver    User      @relation("MessageReceiver", fields: [receiverId], references: [id])
+  content     String
+  
+  // Status
+  isRead      Boolean   @default(false)
+  readAt      DateTime?
+  
+  // Metadata
+  createdAt   DateTime  @default(now())
+  
+  @@map("messages")
+}
+
+// ItemImage: Photos associated with items
+model ItemImage {
+  id        String   @id @default(cuid())
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  
+  // Image details
+  url       String
+  altText   String?
+  sortOrder Int      @default(0)
+  isPrimary Boolean  @default(false)
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  
+  @@map("item_images")
+}
+
+// Report: User reports for moderation
+model Report {
+  id          String      @id @default(cuid())
+  
+  // Reporter
+  reporterId  String
+  reporter    User        @relation("ReportCreator", fields: [reporterId], references: [id])
+  
+  // What's being reported
+  reportedUserId String?
+  reportedUser   User?    @relation("ReportedUser", fields: [reportedUserId], references: [id])
+  reportedItemId String?
+  reportedItem   Item?    @relation("ReportedItem", fields: [reportedItemId], references: [id])
+  
+  // Report details
+  type        ReportType
+  reason      String
+  description String?
+  
+  // Status
+  status      ReportStatus @default(PENDING)
+  reviewedAt  DateTime?
+  reviewedById String?
+  resolution  String?
+  
+  // Metadata
+  createdAt   DateTime    @default(now())
+  
+  @@map("reports")
+}
+
+enum ReportType {
+  INAPPROPRIATE_CONTENT
+  SPAM
+  FAKE_ITEM
+  HARASSMENT
+  FRAUD
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+// Notification: System notifications to users
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  
+  // Notification content
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?            // Additional structured data
+  
+  // Status
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  
+  // Metadata
+  createdAt DateTime         @default(now())
+  
+  @@map("notifications")
+}
+
+enum NotificationType {
+  SWAP_REQUEST
+  SWAP_ACCEPTED
+  SWAP_COMPLETED
+  ITEM_APPROVED
+  ITEM_REJECTED
+  MESSAGE_RECEIVED
+  POINTS_EARNED
+  SYSTEM_ANNOUNCEMENT
+}
+
+// AdminAction: Track moderation activities
+model AdminAction {
+  id          String          @id @default(cuid())
+  adminId     String
+  admin       User            @relation(fields: [adminId], references: [id])
+  
+  // Action details
+  action      AdminActionType
+  targetType  String          // "user", "item", "report", etc.
+  targetId    String
+  reason      String?
+  notes       String?
+  
+  // Metadata
+  createdAt   DateTime        @default(now())
+  
+  @@map("admin_actions")
+}
+
+enum AdminActionType {
+  APPROVE_ITEM
+  REJECT_ITEM
+  REMOVE_ITEM
+  SUSPEND_USER
+  UNSUSPEND_USER
+  RESOLVE_REPORT
+  ADJUST_POINTS
+  SEND_WARNING
+}
