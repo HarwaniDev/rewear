@@ -1,441 +1,377 @@
-"use client"
+'use client'
 
-import { Header } from "@/components/header"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Users,
-  Package,
-  ShoppingBag,
-  Search,
-  Filter,
-  Edit,
-  Trash2,
-  Ban,
-  CheckCircle,
-  AlertCircle,
-  Eye,
-} from "lucide-react"
-import { useState } from "react"
+import React, { useState } from 'react';
+import Link from 'next/link';
+import Navbar from '../../components/Navbar';
+import { 
+  Users, 
+  ShoppingBag, 
+  TrendingUp, 
+  AlertTriangle, 
+  CheckCircle, 
+  XCircle, 
+  Eye, 
+  Edit3, 
+  Trash2, 
+  Search, 
+  Filter, 
+  Download, 
+  Upload, 
+  Settings, 
+  BarChart3, 
+  PieChart, 
+  Activity, 
+  Calendar, 
+  Clock, 
+  Star, 
+  Flag, 
+  Database
+} from 'lucide-react';
 
-export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState("users")
+const AdminDashboard = () => {
+  const [activeTab, setActiveTab] = useState('overview');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
 
-  const users = [
+  // Mock admin data
+  const adminStats = {
+    totalUsers: 10247,
+    activeUsers: 1834,
+    totalItems: 25891,
+    pendingItems: 156,
+    totalSwaps: 8934,
+    reportsToday: 12,
+    revenue: 45678,
+    growthRate: 12.5
+  };
+
+  // Mock pending items for approval
+  const pendingItems = [
     {
       id: 1,
-      name: "Sarah Johnson",
-      email: "sarah.j@email.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-      joinDate: "2024-01-15",
-      status: "Active",
-      listings: 12,
-      purchases: 8,
-      rating: 4.8,
+      title: "Vintage Leather Jacket",
+      user: "Sarah Martinez",
+      userAvatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=200&h=200",
+      category: "Outerwear",
+      image: "https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=400&h=400",
+      submittedDate: "2024-01-20",
+      status: "pending",
+      reason: "Quality check required"
     },
     {
       id: 2,
-      name: "Mike Chen",
-      email: "mike.chen@email.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-      joinDate: "2024-01-10",
-      status: "Active",
-      listings: 6,
-      purchases: 15,
-      rating: 4.9,
-    },
-    {
-      id: 3,
-      name: "Emma Wilson",
-      email: "emma.w@email.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-      joinDate: "2024-01-05",
-      status: "Suspended",
-      listings: 3,
-      purchases: 2,
-      rating: 3.2,
-    },
-    {
-      id: 4,
-      name: "Alex Rodriguez",
-      email: "alex.r@email.com",
-      avatar: "/placeholder.svg?height=40&width=40",
-      joinDate: "2023-12-28",
-      status: "Active",
-      listings: 18,
-      purchases: 22,
-      rating: 4.7,
-    },
-  ]
-
-  const orders = [
-    {
-      id: "ORD-001",
-      buyer: "Sarah Johnson",
-      seller: "Mike Chen",
-      item: "Vintage Denim Jacket",
-      points: 45,
-      status: "Completed",
-      date: "2024-01-15",
-    },
-    {
-      id: "ORD-002",
-      buyer: "Emma Wilson",
-      seller: "Alex Rodriguez",
-      item: "Black Leather Boots",
-      points: 55,
-      status: "In Transit",
-      date: "2024-01-14",
-    },
-    {
-      id: "ORD-003",
-      buyer: "Mike Chen",
-      seller: "Sarah Johnson",
-      item: "Wool Sweater",
-      points: 25,
-      status: "Pending",
-      date: "2024-01-13",
-    },
-    {
-      id: "ORD-004",
-      buyer: "Alex Rodriguez",
-      seller: "Emma Wilson",
-      item: "Summer Dress",
-      points: 35,
-      status: "Disputed",
-      date: "2024-01-12",
-    },
-  ]
-
-  const listings = [
-    {
-      id: "LST-001",
-      title: "Vintage Denim Jacket",
-      seller: "Sarah Johnson",
-      category: "Jackets",
-      points: 45,
-      status: "Active",
-      views: 23,
-      likes: 5,
-      date: "2024-01-15",
-    },
-    {
-      id: "LST-002",
-      title: "Black Leather Boots",
-      seller: "Mike Chen",
-      category: "Shoes",
-      points: 55,
-      status: "Pending Review",
-      views: 18,
-      likes: 3,
-      date: "2024-01-14",
-    },
-    {
-      id: "LST-003",
-      title: "Wool Sweater",
-      seller: "Emma Wilson",
-      category: "Tops",
-      points: 25,
-      status: "Flagged",
-      views: 31,
-      likes: 8,
-      date: "2024-01-13",
-    },
-    {
-      id: "LST-004",
-      title: "Summer Dress",
-      seller: "Alex Rodriguez",
+      title: "Designer Evening Dress",
+      user: "Emma Wilson",
+      userAvatar: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=200&h=200",
       category: "Dresses",
-      points: 35,
-      status: "Active",
-      views: 42,
-      likes: 12,
-      date: "2024-01-12",
-    },
-  ]
+      image: "https://images.pexels.com/photos/985635/pexels-photo-985635.jpeg?auto=compress&cs=tinysrgb&w=400&h=400",
+      submittedDate: "2024-01-19",
+      status: "pending",
+      reason: "Authenticity verification"
+    }
+  ];
 
-  const stats = {
-    totalUsers: 1247,
-    activeUsers: 892,
-    totalListings: 3456,
-    pendingListings: 23,
-    totalOrders: 2134,
-    disputedOrders: 5,
-  }
+  // Mock user reports
+  const userReports = [
+    {
+      id: 1,
+      reportedUser: "John Doe",
+      reportedBy: "Jane Smith",
+      reason: "Inappropriate item description",
+      date: "2024-01-20",
+      status: "pending",
+      severity: "medium"
+    },
+    {
+      id: 2,
+      reportedUser: "Mike Johnson",
+      reportedBy: "Lisa Brown",
+      reason: "Failed to complete swap",
+      date: "2024-01-19",
+      status: "investigating",
+      severity: "high"
+    }
+  ];
+
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
+    { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
+    { id: 'items', label: 'Item Approval', icon: <ShoppingBag className="w-4 h-4" /> },
+    { id: 'reports', label: 'Reports', icon: <Flag className="w-4 h-4" /> },
+    { id: 'analytics', label: 'Analytics', icon: <PieChart className="w-4 h-4" /> },
+    { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> }
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'approved': return 'bg-green-100 text-green-800 border-green-200';
+      case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
+      case 'investigating': return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity.toLowerCase()) {
+      case 'high': return 'bg-red-100 text-red-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'low': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+      <Navbar />
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage users, orders, and listings across the ReWear platform</p>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-32">
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-3xl shadow-xl p-2 border border-gray-100 sticky top-32">
+              <nav className="space-y-1">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all duration-300 ${
+                      activeTab === tab.id
+                        ? 'bg-[#140b38] text-white shadow-lg'
+                        : 'text-[#140b38] hover:bg-[#140b38]/5'
+                    }`}
+                  >
+                    {tab.icon}
+                    <span className="font-medium">{tab.label}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </div>
 
-        {/* Stats Overview */}
-        <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
-          <Card className="shadow-sm border-0">
-            <CardContent className="p-6 text-center">
-              <Users className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-              <div className="text-2xl font-bold">{stats.totalUsers}</div>
-              <div className="text-sm text-gray-600">Total Users</div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border-0">
-            <CardContent className="p-6 text-center">
-              <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
-              <div className="text-2xl font-bold">{stats.activeUsers}</div>
-              <div className="text-sm text-gray-600">Active Users</div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border-0">
-            <CardContent className="p-6 text-center">
-              <Package className="w-8 h-8 mx-auto mb-2 text-purple-600" />
-              <div className="text-2xl font-bold">{stats.totalListings}</div>
-              <div className="text-sm text-gray-600">Total Listings</div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border-0">
-            <CardContent className="p-6 text-center">
-              <AlertCircle className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
-              <div className="text-2xl font-bold">{stats.pendingListings}</div>
-              <div className="text-sm text-gray-600">Pending Review</div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border-0">
-            <CardContent className="p-6 text-center">
-              <ShoppingBag className="w-8 h-8 mx-auto mb-2 text-indigo-600" />
-              <div className="text-2xl font-bold">{stats.totalOrders}</div>
-              <div className="text-sm text-gray-600">Total Orders</div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border-0">
-            <CardContent className="p-6 text-center">
-              <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-600" />
-              <div className="text-2xl font-bold">{stats.disputedOrders}</div>
-              <div className="text-sm text-gray-600">Disputes</div>
-            </CardContent>
-          </Card>
-        </div>
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            {/* Overview Tab */}
+            {activeTab === 'overview' && (
+              <div className="space-y-8">
+                <div>
+                  <h1 className="text-3xl font-bold text-[#140b38] mb-2">Admin Dashboard</h1>
+                  <p className="text-[#140b38]/70">Monitor and manage the ReWear platform</p>
+                </div>
 
-        {/* Management Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-white border border-gray-200">
-            <TabsTrigger value="users" className="data-[state=active]:bg-black data-[state=active]:text-white">
-              Manage Users
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="data-[state=active]:bg-black data-[state=active]:text-white">
-              Manage Orders
-            </TabsTrigger>
-            <TabsTrigger value="listings" className="data-[state=active]:bg-black data-[state=active]:text-white">
-              Manage Listings
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Users Management */}
-          <TabsContent value="users">
-            <Card className="shadow-sm border-0">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>User Management</CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input placeholder="Search users..." className="pl-10 w-64" />
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <Users className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <span className="text-2xl font-bold text-[#140b38]">{adminStats.totalUsers.toLocaleString()}</span>
                     </div>
-                    <Button variant="outline" size="sm">
-                      <Filter className="w-4 h-4 mr-2" />
-                      Filter
-                    </Button>
+                    <h3 className="font-semibold text-[#140b38] mb-1">Total Users</h3>
+                    <p className="text-[#140b38]/70 text-sm">{adminStats.activeUsers.toLocaleString()} active today</p>
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <ShoppingBag className="w-6 h-6 text-green-600" />
+                      </div>
+                      <span className="text-2xl font-bold text-[#140b38]">{adminStats.totalItems.toLocaleString()}</span>
+                    </div>
+                    <h3 className="font-semibold text-[#140b38] mb-1">Total Items</h3>
+                    <p className="text-[#140b38]/70 text-sm">{adminStats.pendingItems} pending approval</p>
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <TrendingUp className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <span className="text-2xl font-bold text-[#140b38]">{adminStats.totalSwaps.toLocaleString()}</span>
+                    </div>
+                    <h3 className="font-semibold text-[#140b38] mb-1">Total Swaps</h3>
+                    <p className="text-[#140b38]/70 text-sm">+{adminStats.growthRate}% this month</p>
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                        <AlertTriangle className="w-6 h-6 text-red-600" />
+                      </div>
+                      <span className="text-2xl font-bold text-[#140b38]">{adminStats.reportsToday}</span>
+                    </div>
+                    <h3 className="font-semibold text-[#140b38] mb-1">Reports Today</h3>
+                    <p className="text-[#140b38]/70 text-sm">Requires attention</p>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
+
+                {/* Recent Activity */}
+                <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
+                  <h2 className="text-xl font-bold text-[#140b38] mb-6">Recent Platform Activity</h2>
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl">
+                      <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[#140b38] font-medium">New user registration spike</p>
+                        <p className="text-[#140b38]/70 text-sm">156 new users in the last 24 hours</p>
+                      </div>
+                      <span className="text-sm text-[#140b38]/60">2 hours ago</span>
+                    </div>
+                    <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl">
+                      <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-yellow-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[#140b38] font-medium">Items pending approval</p>
+                        <p className="text-[#140b38]/70 text-sm">12 items waiting for quality review</p>
+                      </div>
+                      <span className="text-sm text-[#140b38]/60">4 hours ago</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Item Approval Tab */}
+            {activeTab === 'items' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-2xl font-bold text-[#140b38]">Item Approval</h2>
+                    <p className="text-[#140b38]/70">Review and approve pending items</p>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <select className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#140b38] focus:border-transparent">
+                      <option value="all">All Status</option>
+                      <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div className="space-y-4">
-                  {users.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <Avatar>
-                          <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
-                          <AvatarFallback>
-                            {user.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
+                  {pendingItems.map((item) => (
+                    <div key={item.id} className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
+                      <div className="flex items-start space-x-4">
+                        <img 
+                          src={item.image} 
+                          alt={item.title}
+                          className="w-20 h-20 rounded-xl object-cover"
+                        />
                         <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-1">
-                            <h3 className="font-semibold">{user.name}</h3>
-                            <Badge variant={user.status === "Active" ? "default" : "destructive"}>{user.status}</Badge>
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <h3 className="text-lg font-bold text-[#140b38]">{item.title}</h3>
+                              <p className="text-[#140b38]/70">by {item.user}</p>
+                            </div>
+                            <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(item.status)}`}>
+                              {item.status}
+                            </span>
                           </div>
-                          <p className="text-sm text-gray-600">{user.email}</p>
-                          <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
-                            <span>Joined: {user.joinDate}</span>
-                            <span>Listings: {user.listings}</span>
-                            <span>Purchases: {user.purchases}</span>
-                            <span>Rating: {user.rating}/5</span>
+                          <div className="flex items-center space-x-4 mb-4">
+                            <span className="text-sm text-[#140b38]/70">Category: {item.category}</span>
+                            <span className="text-sm text-[#140b38]/70">Submitted: {item.submittedDate}</span>
+                          </div>
+                          <p className="text-sm text-[#140b38]/70 mb-4">{item.reason}</p>
+                          <div className="flex space-x-3">
+                            <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold">
+                              Approve
+                            </button>
+                            <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold">
+                              Reject
+                            </button>
+                            <button className="bg-[#140b38] text-white px-4 py-2 rounded-lg hover:bg-[#1a0f42] transition-colors text-sm font-semibold">
+                              View Details
+                            </button>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Edit className="w-4 h-4 mr-1" />
-                          Edit
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Ban className="w-4 h-4 mr-1" />
-                          Suspend
-                        </Button>
-                      </div>
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            )}
 
-          {/* Orders Management */}
-          <TabsContent value="orders">
-            <Card className="shadow-sm border-0">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Order Management</CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input placeholder="Search orders..." className="pl-10 w-64" />
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Filter className="w-4 h-4 mr-2" />
-                      Filter
-                    </Button>
-                  </div>
+            {/* Reports Tab */}
+            {activeTab === 'reports' && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-[#140b38]">User Reports</h2>
+                  <p className="text-[#140b38]/70">Review and handle user reports</p>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {orders.map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-1">
-                          <h3 className="font-semibold">{order.id}</h3>
-                          <Badge
-                            variant={
-                              order.status === "Completed"
-                                ? "default"
-                                : order.status === "In Transit"
-                                  ? "secondary"
-                                  : order.status === "Disputed"
-                                    ? "destructive"
-                                    : "outline"
-                            }
-                          >
-                            {order.status}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-1">{order.item}</p>
-                        <div className="flex items-center space-x-4 text-xs text-gray-500">
-                          <span>Buyer: {order.buyer}</span>
-                          <span>Seller: {order.seller}</span>
-                          <span>Points: {order.points}</span>
-                          <span>Date: {order.date}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Edit className="w-4 h-4 mr-1" />
-                          Update
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          {/* Listings Management */}
-          <TabsContent value="listings">
-            <Card className="shadow-sm border-0">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Listing Management</CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input placeholder="Search listings..." className="pl-10 w-64" />
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Filter className="w-4 h-4 mr-2" />
-                      Filter
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
                 <div className="space-y-4">
-                  {listings.map((listing) => (
-                    <div key={listing.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-1">
-                          <h3 className="font-semibold">{listing.title}</h3>
-                          <Badge
-                            variant={
-                              listing.status === "Active"
-                                ? "default"
-                                : listing.status === "Flagged"
-                                  ? "destructive"
-                                  : "secondary"
-                            }
-                          >
-                            {listing.status}
-                          </Badge>
+                  {userReports.map((report) => (
+                    <div key={report.id} className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="text-lg font-bold text-[#140b38]">Report #{report.id}</h3>
+                          <p className="text-[#140b38]/70">Reported User: {report.reportedUser}</p>
+                          <p className="text-[#140b38]/70">Reported By: {report.reportedBy}</p>
                         </div>
-                        <p className="text-sm text-gray-600 mb-1">by {listing.seller}</p>
-                        <div className="flex items-center space-x-4 text-xs text-gray-500">
-                          <span>Category: {listing.category}</span>
-                          <span>Points: {listing.points}</span>
-                          <span>Views: {listing.views}</span>
-                          <span>Likes: {listing.likes}</span>
-                          <span>Date: {listing.date}</span>
+                        <div className="flex space-x-2">
+                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getSeverityColor(report.severity)}`}>
+                            {report.severity}
+                          </span>
+                          <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(report.status)}`}>
+                            {report.status}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Edit className="w-4 h-4 mr-1" />
-                          Edit
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Trash2 className="w-4 h-4 mr-1" />
-                          Remove
-                        </Button>
+                      <p className="text-[#140b38] mb-4">{report.reason}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-[#140b38]/70">{report.date}</span>
+                        <div className="flex space-x-3">
+                          <button className="bg-[#140b38] text-white px-4 py-2 rounded-lg hover:bg-[#1a0f42] transition-colors text-sm font-semibold">
+                            Investigate
+                          </button>
+                          <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold">
+                            Resolve
+                          </button>
+                          <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold">
+                            Escalate
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </div>
+            )}
+
+            {/* Other tabs would be implemented similarly */}
+            {activeTab === 'users' && (
+              <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 text-center">
+                <Database className="w-16 h-16 text-[#140b38]/40 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-[#140b38] mb-2">User Management</h3>
+                <p className="text-[#140b38]/70">User management features coming soon...</p>
+              </div>
+            )}
+
+            {activeTab === 'analytics' && (
+              <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 text-center">
+                <BarChart3 className="w-16 h-16 text-[#140b38]/40 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-[#140b38] mb-2">Analytics Dashboard</h3>
+                <p className="text-[#140b38]/70">Advanced analytics coming soon...</p>
+              </div>
+            )}
+
+            {activeTab === 'settings' && (
+              <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 text-center">
+                <Settings className="w-16 h-16 text-[#140b38]/40 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-[#140b38] mb-2">Platform Settings</h3>
+                <p className="text-[#140b38]/70">System configuration coming soon...</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default AdminDashboard;
